@@ -1,0 +1,7 @@
+Flask
+python-dotenv
+google-generativeai
+edge-tts
+pydub
+gunicorn
+gunicorn
