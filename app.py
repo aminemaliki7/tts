@@ -21,8 +21,7 @@ import uuid
 
 # Initialize Flask app
 app = Flask(__name__)
-app.secret_key = "simple_tts_generator"  # for session management
-
+app.secret_key = os.getenv("SECRET_KEY", "fallback_secret_key")
 
 
 load_dotenv()
