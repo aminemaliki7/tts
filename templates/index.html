@@ -3,323 +3,1112 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>REALTALK</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
-</head>
-<body>
-    <div class="app-container">
-        <header class="header">
-            <h1>REALTALK</h1>
-            <p>AI VOICE GENERATION PLATFORM</p>
-            <div class="language-selector">
-    </div>
-        </header>
-        
-        <div class="card">
-            <form action="/upload" method="POST" enctype="multipart/form-data">
-                <!-- Input tabs -->
-                <ul class="nav-tabs" id="inputTabs" role="tablist">
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link active" id="text-tab" data-bs-toggle="tab" data-bs-target="#text-input" type="button" role="tab" aria-controls="text-input" aria-selected="true">
-                            TEXT
-                        </button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="file-tab" data-bs-toggle="tab" data-bs-target="#file-input" type="button" role="tab" aria-controls="file-input" aria-selected="false">
-                            FILE UPLOAD
-                        </button>
-                    </li>
-                    <li class="nav-item ms-auto" role="presentation">
-                        <a href="/ssml" class="nav-link">
-                            SSML EDITOR
-                            <span class="feature-badge pro">PRO</span>
-                        </a>
-                    </li>
-                </ul>
-                
-                <div class="tab-content" id="inputTabsContent">
-                    <!-- Text input tab -->
-                    <div class="tab-pane fade show active" id="text-input" role="tabpanel" aria-labelledby="text-tab">
-                        <div class="mb-3">
-                            <textarea class="form-control text-area" id="text-content" name="text-content" rows="6" placeholder="Type or paste your text here...">{{ prefill }}</textarea>
-                        </div>
-                    </div>
-                    
-                    <!-- File upload tab -->
-                    <div class="tab-pane fade" id="file-input" role="tabpanel" aria-labelledby="file-tab">
-                        <div class="mb-3">
-                            <div class="form-control text-center p-4 file-upload-area">
-                                <p class="mb-2">Drag and drop your file here or</p>
-                                <label for="script" class="btn btn-outline-primary">
-                                    Browse Files
-                                    <input type="file" class="d-none" id="script" name="script" accept=".txt">
-                                </label>
-                                <p class="small text-muted mt-2">Supported formats: .txt (Max 10MB)</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+    <title>RealTalk - AI Voice Generation Platform</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #000000;
+            --secondary: #FFFFFF;
+            --dark-blue: #0F172A;
+            --dark-blue-light: #1E293B;
+            --gray-50: #FAFAFA;
+            --gray-100: #F5F5F5;
+            --gray-200: #E5E5E5;
+            --gray-300: #D4D4D4;
+            --gray-400: #A3A3A3;
+            --gray-500: #737373;
+            --gray-600: #525252;
+            --gray-700: #404040;
+            --gray-800: #262626;
+            --gray-900: #171717;
+            --shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
+            --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.1);
+            --shadow-xl: 0 25px 50px rgba(0, 0, 0, 0.15);
+            --gradient-blue: linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #000000 100%);
+            --gradient-dark: linear-gradient(135deg, #000000 0%, #262626 100%);
+        }
 
-                <!-- Hidden input to track which tab is active -->
-                <input type="hidden" id="input-method" name="input-method" value="text">
-                
-                <div class="row mt-4">
-                    <div class="col-md-6">
-                        <div class="voice-selection">
-                            <h4 class="section-title">VOICE SELECTION</h4>
-                            
-                            <div class="mb-3">
-                                <label for="language" class="form-label">LANGUAGE</label>
-                                <select class="form-select" id="language" onchange="updateVoices()">
-                                    {% for language in languages %}
-                                    <option value="{{ language }}">{{ language }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            
-                            <div class="mb-3">
-                                <label for="voice" class="form-label">VOICE</label>
-                                <select class="form-select" id="voice" name="voice">
-                                    {% for voice in voices %}
-                                    <option value="{{ voice.id }}" data-language="{{ voice.language }}">{{ voice.name }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            
-                            <!-- Optional title field for the output file -->
-                            <div class="mb-3">
-                                <label for="title" class="form-label">TITLE (OPTIONAL)</label>
-                                <input type="text" class="form-control" id="title" name="title" placeholder="Custom name for your audio file">
-                                <div class="form-text">This will be used as the filename when downloading.</div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="col-md-6">
-                        <div class="voice-parameters parameter-container">
-                            <h4 class="section-title">VOICE PARAMETERS</h4>
-                            
-                            <!-- Enhanced Speed Slider -->
-                            <div class="mb-4">
-                                <div class="parameter-label">
-                                    <label for="speed">SPEED</label>
-                                    <span class="value" id="speedValue">1.0</span>
-                                </div>
-                                <input type="range" class="form-range" id="speed" name="speed" min="0.5" max="2" step="0.1" value="1.0" oninput="updateSpeedValue()">
-                                <div class="three-col-labels">
-                                    <span>0.5x</span>
-                                    <span>1.0x</span>
-                                    <span>2.0x</span>
-                                </div>
-                                <div class="param-info">
-                                    Values below 0.8 or above 1.2 create more dramatic effects
-                                </div>
-                            </div>
-                            
-                            <!-- Enhanced Depth Slider -->
-                            <div class="mb-3">
-                                <div class="parameter-label">
-                                    <label for="depth">VOICE DEPTH</label>
-                                    <span class="value" id="depthValue">1</span>
-                                </div>
-                                <input type="range" class="form-range" id="depth" name="depth" min="1" max="5" step="1" value="1" oninput="updateDepthValue()">
-                                <div class="three-col-labels">
-                                    <span>1</span>
-                                    <span>3</span>
-                                    <span>5</span>
-                                </div>
-                                <div class="param-info">
-                                    Higher values add more bass and depth to the voice
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Parameters Help Box -->
-                        <div class="param-help-alert">
-                            <h5 class="param-help-title">
-                                ABOUT VOICE PARAMETERS
-                            </h5>
-                            <p class="param-help-text">
-                                <strong>SPEED:</strong> Adjust how fast or slow the voice speaks. Extreme values (0.5 or 2.0) create very noticeable effects.
-                            </p>
-                            <p class="param-help-text" style="margin-bottom: 0;">
-                                <strong>DEPTH:</strong> Adjust the bass and tone of the voice. Higher values (4-5) create a significantly deeper, more resonant voice.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="d-grid gap-2 mt-4">
-                    <button type="submit" class="btn btn-primary btn-lg">
-                        GENERATE REALTALK VOICE
-                    </button>
-                </div>
-            </form>
-            
-            <div class="actions mt-4">
-                <a href="/dashboard" class="btn btn-outline-secondary icon-btn">
-                    VIEW HISTORY
-                </a>
-            
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            line-height: 1.6;
+            color: var(--gray-900);
+            background: var(--secondary);
+            overflow-x: hidden;
+        }
 
-            </div>
-            
-           
-        </div>
-        
-        <div class="footer">
-            <p>Create natural-sounding voice content with our advanced AI voice generation technology.</p>
-            <p>&copy; 2025 RealTalk. All rights reserved.</p>
-        </div>
-    </div>
-    
-    <!-- Load Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- Load our custom JavaScript file using Flask's url_for -->
-    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
-    
-    <script>
-        // Function to update voices based on selected language
-        function updateVoices() {
-            const languageSelect = document.getElementById('language');
-            const voiceSelect = document.getElementById('voice');
-            const selectedLanguage = languageSelect.value;
-            
-            // Hide all options first
-            Array.from(voiceSelect.options).forEach(option => {
-                const optionLanguage = option.getAttribute('data-language');
-                option.style.display = optionLanguage === selectedLanguage ? '' : 'none';
-            });
-            
-            // Select the first visible option
-            const firstVisibleOption = Array.from(voiceSelect.options).find(option => 
-                option.getAttribute('data-language') === selectedLanguage
-            );
-            
-            if (firstVisibleOption) {
-                firstVisibleOption.selected = true;
+        /* Futuristic Grid Background */
+        .grid-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.03;
+            background-image: 
+                linear-gradient(var(--gray-300) 1px, transparent 1px),
+                linear-gradient(90deg, var(--gray-300) 1px, transparent 1px);
+            background-size: 20px 20px;
+            animation: grid-move 20s linear infinite;
+        }
+
+        @keyframes grid-move {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(20px, 20px); }
+        }
+
+        /* Floating Geometric Elements */
+        .geometric-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .geometric-shape {
+            position: absolute;
+            border: 1px solid var(--dark-blue);
+            opacity: 0.1;
+        }
+
+        .shape-1 {
+            width: 200px;
+            height: 200px;
+            top: 10%;
+            left: 10%;
+            animation: float-1 15s ease-in-out infinite;
+        }
+
+        .shape-2 {
+            width: 150px;
+            height: 150px;
+            top: 60%;
+            right: 15%;
+            animation: float-2 20s ease-in-out infinite;
+        }
+
+        .shape-3 {
+            width: 100px;
+            height: 100px;
+            bottom: 20%;
+            left: 20%;
+            transform: rotate(45deg);
+            animation: float-3 18s ease-in-out infinite;
+        }
+
+        @keyframes float-1 {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-30px) rotate(180deg); }
+        }
+
+        @keyframes float-2 {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(20px) rotate(-90deg); }
+        }
+
+        @keyframes float-3 {
+            0%, 100% { transform: rotate(45deg) translateY(0); }
+            50% { transform: rotate(225deg) translateY(-15px); }
+        }
+
+        /* Header */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--gray-200);
+            z-index: 1000;
+            padding: 1rem 0;
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+            color: var(--primary);
+        }
+
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--gradient-blue);
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .logo-icon::before {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: var(--secondary);
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .logo-icon::after {
+            content: '';
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: var(--dark-blue);
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation: pulse-blue 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-blue {
+            0%, 100% { 
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 1;
+            }
+            50% { 
+                transform: translate(-50%, -50%) scale(1.5);
+                opacity: 0.7;
             }
         }
-        
-        // Function to update speed value display
-        function updateSpeedValue() {
-            const speedSlider = document.getElementById('speed');
-            const speedValue = document.getElementById('speedValue');
-            speedValue.textContent = speedSlider.value;
+
+        .logo-text {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.25rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
         }
-        
-        // Function to update depth value display
-        function updateDepthValue() {
-            const depthSlider = document.getElementById('depth');
-            const depthValue = document.getElementById('depthValue');
-            depthValue.textContent = depthSlider.value;
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 2.5rem;
+            list-style: none;
         }
-        
-        // Track which tab is active and update the hidden input
-        document.addEventListener('DOMContentLoaded', function() {
-            const textTab = document.getElementById('text-tab');
-            const fileTab = document.getElementById('file-tab');
-            const inputMethodField = document.getElementById('input-method');
+
+        .nav-link {
+            color: var(--gray-600);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--gradient-blue);
+            transition: width 0.3s ease;
+        }
+
+        .nav-link:hover {
+            color: var(--primary);
+        }
+
+        .nav-link:hover::after {
+            width: 100%;
+        }
+
+        .cta-button {
+            background: var(--gradient-blue);
+            color: var(--secondary);
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.875rem;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cta-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .cta-button:hover::before {
+            left: 100%;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-lg);
+            background: var(--dark-blue-light);
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8rem 2rem 4rem;
+            text-align: center;
+            position: relative;
+        }
+
+        .hero-content {
+            max-width: 900px;
+            z-index: 10;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--gray-100);
+            padding: 0.5rem 1.25rem;
+            border-radius: 50px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--gray-700);
+            margin-bottom: 2rem;
+            border: 1px solid var(--gray-200);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .hero-badge::before {
+            content: '●';
+            color: var(--dark-blue);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .hero-title {
+            font-size: clamp(2.5rem, 6vw, 4.5rem);
+            font-weight: 700;
+            line-height: 1.1;
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+            letter-spacing: -0.02em;
+        }
+
+        .hero-title .accent {
+            background: var(--gradient-blue);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-subtitle {
+            font-size: 1.25rem;
+            color: var(--gray-600);
+            margin-bottom: 3rem;
+            line-height: 1.6;
+            font-weight: 400;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 4rem;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: var(--secondary);
+            padding: 1.25rem 2.5rem;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            border: none;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: var(--gradient-blue);
+            transition: left 0.3s ease;
+            z-index: -1;
+        }
+
+        .btn-primary:hover::before {
+            left: 0;
+        }
+
+        .btn-primary:hover {
+            color: var(--secondary);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--primary);
+            padding: 1.25rem 2.5rem;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1rem;
+            border: 2px solid var(--gray-300);
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--dark-blue);
+            background: var(--gray-50);
+            color: var(--primary);
+        }
+
+        /* Voice Generator Card */
+        .generator-card {
+            background: var(--secondary);
+            border-radius: 12px;
+            padding: 3rem;
+            max-width: 800px;
+            margin: 0 auto;
+            box-shadow: var(--shadow-xl);
+            border: 1px solid var(--gray-200);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .generator-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--gradient-blue);
+        }
+
+        .card-tabs {
+            display: flex;
+            background: var(--gray-100);
+            border-radius: 6px;
+            padding: 0.25rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--gray-200);
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 0.875rem 1rem;
+            border: none;
+            background: transparent;
+            color: var(--gray-600);
+            font-weight: 500;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.875rem;
+            font-family: 'JetBrains Mono', monospace;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .tab-button.active {
+            background: var(--secondary);
+            color: var(--primary);
+            box-shadow: var(--shadow);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 600;
+            color: var(--gray-900);
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+            font-family: 'JetBrains Mono', monospace;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 1.25rem;
+            border: 2px solid var(--gray-200);
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+            background: var(--secondary);
+            color: var(--gray-900);
+            min-height: 140px;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--dark-blue);
+            box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.1);
+        }
+
+        .form-select {
+            width: 100%;
+            padding: 1.25rem;
+            border: 2px solid var(--gray-200);
+            border-radius: 6px;
+            font-size: 1rem;
+            background: var(--secondary);
+            color: var(--gray-900);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .form-select:focus {
+            outline: none;
+            border-color: var(--dark-blue);
+            box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.1);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        /* Features Section */
+        .features {
+            padding: 8rem 2rem;
+            background: var(--gray-50);
+            position: relative;
+        }
+
+        .features::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: var(--gradient-blue);
+        }
+
+        .features-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .features-header {
+            text-align: center;
+            margin-bottom: 5rem;
+        }
+
+        .features-title {
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 1rem;
+            letter-spacing: -0.02em;
+        }
+
+        .features-subtitle {
+            font-size: 1.125rem;
+            color: var(--gray-600);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2.5rem;
+        }
+
+        .feature-card {
+            background: var(--secondary);
+            padding: 2.5rem;
+            border-radius: 12px;
+            border: 1px solid var(--gray-200);
+            transition: all 0.4s ease;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 2px;
+            background: var(--gradient-blue);
+            transition: left 0.3s ease;
+        }
+
+        .feature-card:hover::before {
+            left: 0;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-xl);
+            border-color: var(--gray-300);
+        }
+
+        .feature-icon {
+            width: 60px;
+            height: 60px;
+            background: var(--gradient-blue);
+            border-radius: 12px;
+            margin: 0 auto 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: var(--secondary);
+            font-weight: bold;
+        }
+
+        .feature-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 1rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .feature-description {
+            color: var(--gray-600);
+            line-height: 1.6;
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--primary);
+            color: var(--secondary);
+            padding: 4rem 2rem 2rem;
+            text-align: center;
+            position: relative;
+        }
+
+        .footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--gradient-blue);
+        }
+
+        .footer-content {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .footer-logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            margin-bottom: 2rem;
+        }
+
+        .footer-logo-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--gradient-blue);
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .footer-logo-icon::before {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: var(--secondary);
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .footer-logo-icon::after {
+            content: '';
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: var(--dark-blue);
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .footer-logo-text {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.25rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            color: var(--secondary);
+        }
+
+        .footer-text {
+            margin-bottom: 2rem;
+            color: var(--gray-400);
+            font-size: 1rem;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+            margin-bottom: 3rem;
+            flex-wrap: wrap;
+        }
+
+        .footer-link {
+            color: var(--gray-300);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .footer-link:hover {
+            color: var(--dark-blue-light);
+        }
+
+        .footer-bottom {
+            border-top: 1px solid var(--gray-700);
+            padding-top: 2rem;
+            color: var(--gray-500);
+            font-size: 0.875rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .hero {
+                padding: 6rem 1rem 4rem;
+            }
+
+            .hero-actions {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .generator-card {
+                margin: 0 1rem;
+                padding: 2rem;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .features-title {
+                font-size: 2rem;
+            }
+
+            .footer-links {
+                gap: 1.5rem;
+            }
+        }
+
+        /* Loading Animation */
+        .loading-dots {
+            display: inline-flex;
+            gap: 0.25rem;
+        }
+
+        .dot {
+            width: 6px;
+            height: 6px;
+            background: currentColor;
+            border-radius: 50%;
+            animation: loading-pulse 1.5s ease-in-out infinite;
+        }
+
+        .dot:nth-child(2) { animation-delay: 0.5s; }
+        .dot:nth-child(3) { animation-delay: 1s; }
+
+        @keyframes loading-pulse {
+            0%, 80%, 100% { opacity: 0.3; }
+            40% { opacity: 1; }
+        }
+
+        /* Futuristic Accents */
+        .scan-line {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: var(--gradient-blue);
+            animation: scan 3s ease-in-out infinite;
+        }
+
+        @keyframes scan {
+            0%, 100% { opacity: 0; transform: translateX(-100%); }
+            50% { opacity: 1; transform: translateX(100%); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Futuristic Background Elements -->
+    <div class="grid-bg"></div>
+    <div class="geometric-bg">
+        <div class="geometric-shape shape-1"></div>
+        <div class="geometric-shape shape-2"></div>
+        <div class="geometric-shape shape-3"></div>
+    </div>
+
+    <!-- Header -->
+    <header class="header">
+        <nav class="nav-container">
+            <a href="/" class="logo">
+                <div class="logo-icon"></div>
+                <span class="logo-text">REALTALK</span>
+            </a>
+            <ul class="nav-links">
+                <li><a href="#features" class="nav-link">FEATURES</a></li>
+                <li><a href="/script-generator" class="nav-link">AI SCRIPTS</a></li>
+                <li><a href="/ssml" class="nav-link">VOICE CONTROL</a></li>
+                <li><a href="/dashboard" class="nav-link">DASHBOARD</a></li>
+            </ul>
+            <a href="#get-started" class="cta-button">GET STARTED</a>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero" id="get-started">
+        <div class="hero-content">
+            <div class="hero-badge">
+                AI-POWERED VOICE GENERATION PLATFORM
+            </div>
             
-            textTab.addEventListener('click', function() {
-                inputMethodField.value = 'text';
-            });
+            <h1 class="hero-title">
+                Create Professional 
+                <br><span class="accent">AI Voiceovers</span> in Minutes
+            </h1>
             
-            fileTab.addEventListener('click', function() {
-                inputMethodField.value = 'file';
-            });
-            
-            // Initialize voices on page load
-            updateVoices();
-            
-            // File upload UI enhancements
-            const fileUploadArea = document.querySelector('.file-upload-area');
-            const fileInput = document.getElementById('script');
-            
-            // Display selected filename
-            fileInput.addEventListener('change', function() {
-                if (this.files && this.files[0]) {
-                    const fileName = this.files[0].name;
-                    const fileSize = (this.files[0].size / 1024).toFixed(2) + ' KB';
-                    
-                    // Update UI to show selected file
-                    fileUploadArea.innerHTML = `
-                        <div class="selected-file">
-                            <span class="file-name">${fileName}</span>
-                            <span class="file-size">(${fileSize})</span>
-                            <button type="button" class="btn-close btn-sm ms-2" aria-label="Remove file"></button>
+            <p class="hero-subtitle">
+                Transform text into natural-sounding speech with our advanced AI voice generation technology. 
+                Supporting 70+ languages and hundreds of professional voices with enterprise-grade quality.
+            </p>
+
+            <!-- Voice Generator Card -->
+            <div class="generator-card">
+                <div class="scan-line"></div>
+                <form action="/upload" method="POST" enctype="multipart/form-data">
+                    <div class="card-tabs">
+                        <button type="button" class="tab-button active" onclick="switchTab('text')">
+                            TEXT INPUT
+                        </button>
+                        <button type="button" class="tab-button" onclick="switchTab('file')">
+                            FILE UPLOAD
+                        </button>
+                        <button type="button" class="tab-button" onclick="switchTab('ai')">
+                            AI SCRIPTS
+                        </button>
+                    </div>
+
+                    <!-- Text Input Tab -->
+                    <div id="text-tab" class="tab-content active">
+                        <div class="form-group">
+                            <label for="text-content" class="form-label">ENTER YOUR TEXT</label>
+                            <textarea 
+                                class="form-input" 
+                                id="text-content" 
+                                name="text-content" 
+                                placeholder="Type or paste your text here. Our AI will convert it into natural-sounding speech with professional quality..."
+                                rows="4"
+                            ></textarea>
                         </div>
-                    `;
+                    </div>
+
+                    <!-- File Upload Tab -->
+                    <div id="file-tab" class="tab-content">
+                        <div class="form-group">
+                            <label for="script" class="form-label">UPLOAD SCRIPT FILE</label>
+                            <input type="file" class="form-input" id="script" name="script" accept=".txt" style="min-height: auto; padding: 1.25rem;">
+                        </div>
+                    </div>
+
+                    <!-- AI Scripts Tab -->
+                    <div id="ai-tab" class="tab-content">
+                        <div class="form-group" style="text-align: center; padding: 2rem;">
+                            <p style="color: var(--gray-600); margin-bottom: 1.5rem; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.05em;">
+                                GENERATE SCRIPTS AUTOMATICALLY WITH OUR AI TOOLS
+                            </p>
+                            <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                                <a href="/shorts-generator" class="btn-secondary">YOUTUBE SHORTS</a>
+                                <a href="/marketing-generator" class="btn-secondary">MARKETING</a>
+                                <a href="/script-generator" class="btn-secondary">GENERAL SCRIPTS</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="voice" class="form-label">VOICE</label>
+                            <select class="form-select" id="voice" name="voice">
+                                <option value="en-US-JennyNeural">JENNY (FEMALE, US)</option>
+                                <option value="en-US-GuyNeural">GUY (MALE, US)</option>
+                                <option value="en-GB-SoniaNeural">SONIA (FEMALE, UK)</option>
+                                <option value="en-GB-RyanNeural">RYAN (MALE, UK)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="language" class="form-label">LANGUAGE</label>
+                            <select class="form-select" id="language" name="language">
+                                <option value="English">ENGLISH</option>
+                                <option value="French">FRENCH</option>
+                                <option value="Spanish">SPANISH</option>
+                                <option value="German">GERMAN</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <input type="hidden" id="input-method" name="input-method" value="text">
                     
-                    // Add event listener to remove button
-                    fileUploadArea.querySelector('.btn-close').addEventListener('click', function(e) {
-                        e.preventDefault();
-                        fileInput.value = '';
-                        fileUploadArea.innerHTML = `
-                            <p class="mb-2">Drag and drop your file here or</p>
-                            <label for="script" class="btn btn-outline-primary">
-                                Browse Files
-                                <input type="file" class="d-none" id="script" name="script" accept=".txt">
-                            </label>
-                            <p class="small text-muted mt-2">Supported formats: .txt (Max 10MB)</p>
-                        `;
+                    <button type="submit" class="btn-primary" style="width: 100%; justify-content: center;">
+                        <span>GENERATE VOICE</span>
+                        <div class="loading-dots" style="display: none;">
+                            <div class="dot"></div>
+                            <div class="dot"></div>
+                            <div class="dot"></div>
+                        </div>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features" id="features">
+        <div class="features-container">
+            <div class="features-header">
+                <h2 class="features-title">POWERFUL <span class="accent">AI VOICE</span> FEATURES</h2>
+                <p class="features-subtitle">
+                    Everything you need to create professional voiceovers, from simple text-to-speech to advanced AI script generation with enterprise-grade quality and precision.
+                </p>
+            </div>
+
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">AI</div>
+                    <h3 class="feature-title">AI SCRIPT GENERATION</h3>
+                    <p class="feature-description">
+                        Generate compelling scripts for YouTube Shorts, marketing content, and educational materials with our advanced AI that understands context and tone.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">VX</div>
+                    <h3 class="feature-title">PROFESSIONAL VOICES</h3>
+                    <p class="feature-description">
+                        Choose from hundreds of high-quality AI voices in 70+ languages with natural intonation, emotion, and human-like speech patterns.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">ML</div>
+                    <h3 class="feature-title">SSML CONTROL</h3>
+                    <p class="feature-description">
+                        Fine-tune speech with advanced SSML markup for perfect pronunciation, strategic pauses, emphasis, and professional audio control.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">∞</div>
+                    <h3 class="feature-title">BATCH PROCESSING</h3>
+                    <p class="feature-description">
+                        Process multiple files simultaneously with real-time status tracking, job management, and scalable enterprise infrastructure.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">API</div>
+                    <h3 class="feature-title">EASY INTEGRATION</h3>
+                    <p class="feature-description">
+                        Simple API and web interface that works seamlessly across all devices, platforms, and development environments.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">◊</div>
+                    <h3 class="feature-title">ENTERPRISE READY</h3>
+                    <p class="feature-description">
+                        Scalable, secure, and reliable voice generation for businesses of all sizes with 99.9% uptime and enterprise support.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-logo">
+                <div class="footer-logo-icon"></div>
+                <span class="footer-logo-text">REALTALK</span>
+            </div>
+            
+            <p class="footer-text">
+                Create natural-sounding voice content with our advanced AI voice generation technology. 
+                Professional quality, enterprise reliability, futuristic innovation.
+            </p>
+            
+            <div class="footer-links">
+                <a href="/dashboard" class="footer-link">DASHBOARD</a>
+                <a href="/ssml" class="footer-link">SSML EDITOR</a>
+                <a href="/script-generator" class="footer-link">AI SCRIPTS</a>
+                <a href="#features" class="footer-link">FEATURES</a>
+                <a href="/api" class="footer-link">API DOCS</a>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2025 REALTALK. ALL RIGHTS RESERVED.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function switchTab(tabName) {
+            // Update tab buttons
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+            
+            // Update hidden input
+            document.getElementById('input-method').value = tabName === 'ai' ? 'text' : tabName;
+        }
+
+        // Form submission animation
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const button = this.querySelector('.btn-primary');
+            const span = button.querySelector('span');
+            const dots = button.querySelector('.loading-dots');
+            
+            span.style.display = 'none';
+            dots.style.display = 'flex';
+            button.disabled = true;
+        });
+
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
                     });
                 }
             });
-            
-            // Drag and drop functionality
-            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-                fileUploadArea.addEventListener(eventName, preventDefaults, false);
-            });
-            
-            function preventDefaults(e) {
-                e.preventDefault();
-                e.stopPropagation();
-            }
-            
-            ['dragenter', 'dragover'].forEach(eventName => {
-                fileUploadArea.addEventListener(eventName, highlight, false);
-            });
-            
-            ['dragleave', 'drop'].forEach(eventName => {
-                fileUploadArea.addEventListener(eventName, unhighlight, false);
-            });
-            
-            function highlight() {
-                fileUploadArea.classList.add('highlight');
-            }
-            
-            function unhighlight() {
-                fileUploadArea.classList.remove('highlight');
-            }
-            
-            fileUploadArea.addEventListener('drop', handleDrop, false);
-            
-            function handleDrop(e) {
-                const dt = e.dataTransfer;
-                const files = dt.files;
-                
-                if (files && files.length) {
-                    fileInput.files = files;
-                    fileInput.dispatchEvent(new Event('change'));
-                }
-            }
         });
-    </script>
-    
-    <!-- Our custom script -->
-    <script>
-        // Initialize on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            updateVoices();
+
+        // Parallax effect for geometric shapes
+        window.addEventListener('scroll', () => {
+            const scrolled = window.pageYOffset;
+            const shapes = document.querySelectorAll('.geometric-shape');
             
-            // Set up language change listener
-            const languageSelect = document.getElementById('language');
-            if (languageSelect) {
-                languageSelect.addEventListener('change', updateVoices);
-            }
+            shapes.forEach((shape, index) => {
+                const speed = (index + 1) * 0.1;
+                shape.style.transform += ` translateY(${scrolled * speed}px)`;
+            });
+        });
+
+        // Add dynamic blue accents on hover
+        document.querySelectorAll('.feature-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.boxShadow = '0 25px 50px rgba(15, 23, 42, 0.15)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.boxShadow = '';
+            });
         });
     </script>
 </body>
