@@ -277,6 +277,83 @@
             background: var(--dark-blue-light);
         }
 
+        /* Hamburger Menu */
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            justify-content: space-between;
+            width: 24px;
+            height: 18px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            z-index: 1001;
+        }
+
+        .hamburger span {
+            width: 100%;
+            height: 3px;
+            background: var(--gray-600);
+            border-radius: 2px;
+            transition: all 0.3s ease;
+        }
+
+        .hamburger.active span:nth-child(1) {
+            transform: rotate(45deg) translate(6px, 6px);
+        }
+
+        .hamburger.active span:nth-child(2) {
+            opacity: 0;
+        }
+
+        .hamburger.active span:nth-child(3) {
+            transform: rotate(-45deg) translate(7px, -7px);
+        }
+
+        /* Mobile Menu */
+        .mobile-menu {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 2rem;
+        }
+
+        .mobile-menu.active {
+            display: flex;
+        }
+
+        .mobile-nav-links {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            text-align: center;
+        }
+
+        .mobile-nav-link {
+            color: var(--gray-600);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.25rem;
+            font-family: 'JetBrains Mono', monospace;
+            text-transform: uppercase;
+            transition: all 0.2s ease;
+        }
+
+        .mobile-nav-link:hover {
+            color: var(--primary);
+        }
+
         /* Hero Section */
         .hero {
             min-height: 100vh;
@@ -764,6 +841,15 @@
                 display: none;
             }
 
+            .hamburger {
+                display: flex;
+            }
+
+            .cta-button {
+                padding: 0.5rem 1rem;
+                font-size: 0.75rem;
+            }
+
             .hero {
                 padding: 6rem 1rem 4rem;
             }
@@ -852,7 +938,20 @@
                 <li><a href="/dashboard" class="nav-link">DASHBOARD</a></li>
             </ul>
             <a href="#get-started" class="cta-button">GET STARTED</a>
+            <button class="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
         </nav>
+        <div class="mobile-menu">
+            <ul class="mobile-nav-links">
+                <li><a href="#features" class="mobile-nav-link">FEATURES</a></li>
+                <li><a href="/ssml" class="mobile-nav-link">VOICE CONTROL</a></li>
+                <li><a href="/dashboard" class="mobile-nav-link">DASHBOARD</a></li>
+                <li><a href="#get-started" class="mobile-nav-link">GET STARTED</a></li>
+            </ul>
+        </div>
     </header>
 
     <!-- Hero Section -->
@@ -883,7 +982,6 @@
                         <button type="button" class="tab-button" onclick="switchTab('file')">
                             FILE UPLOAD
                         </button>
-                       
                     </div>
 
                     <!-- Text Input Tab -->
@@ -1082,7 +1180,18 @@
                         block: 'start'
                     });
                 }
+                // Close mobile menu on link click
+                const mobileMenu = document.querySelector('.mobile-menu');
+                const hamburger = document.querySelector('.hamburger');
+                mobileMenu.classList.remove('active');
+                hamburger.classList.remove('active');
             });
+        });
+
+        // Hamburger menu toggle
+        document.querySelector('.hamburger').addEventListener('click', function() {
+            this.classList.toggle('active');
+            document.querySelector('.mobile-menu').classList.toggle('active');
         });
 
         // Parallax effect for geometric shapes
