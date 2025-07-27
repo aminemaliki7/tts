@@ -353,6 +353,35 @@
             letter-spacing: 0.05em;
         }
 
+        /* Loading State */
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--gray-300);
+            border-top: 3px solid var(--dark-blue);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-state {
+            text-align: center;
+            padding: 3rem;
+        }
+
+        .loading-state p {
+            color: var(--gray-600);
+            font-family: 'JetBrains Mono', monospace;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-top: 1rem;
+        }
+
         /* Table */
         .table-container {
             overflow-x: auto;
@@ -426,10 +455,11 @@
             border: 1px solid var(--primary);
         }
 
-        .badge-failed {
-            background: var(--gray-200);
-            color: var(--gray-700);
-            border: 1px solid var(--gray-400);
+        .badge-failed,
+        .badge-error {
+            background: #DC2626;
+            color: var(--secondary);
+            border: 1px solid #DC2626;
         }
 
         /* Buttons */
@@ -691,7 +721,7 @@
         }
 
         .audio-player-control-btn.paused::after {
-            content: '||';
+            content: '⏸';
         }
 
         .audio-timeline {
@@ -771,6 +801,14 @@
             margin-right: 1rem;
         }
 
+        .d-none {
+            display: none !important;
+        }
+
+        .d-block {
+            display: block !important;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .nav-links {
@@ -842,7 +880,6 @@
             </a>
             <ul class="nav-links">
                 <li><a href="/" class="nav-link">HOME</a></li>
-                <li><a href="/script-generator" class="nav-link">AI SCRIPTS</a></li>
                 <li><a href="/ssml" class="nav-link">VOICE CONTROL</a></li>
                 <li><a href="/dashboard" class="nav-link active">DASHBOARD</a></li>
             </ul>
@@ -866,10 +903,16 @@
         <div class="main-card">
             <div class="scan-line"></div>
             
-            <!-- Simulated jobs data for demo -->
             <h4 class="section-title mb-3">RECENT JOBS</h4>
             
-            <div class="table-container">
+            <!-- Loading State -->
+            <div id="loadingState" class="loading-state">
+                <div class="loading-spinner"></div>
+                <p>LOADING YOUR JOBS...</p>
+            </div>
+            
+            <!-- Jobs Table -->
+            <div id="jobsTable" class="table-container d-none">
                 <table class="table">
                     <thead>
                         <tr>
@@ -880,98 +923,26 @@
                             <th>ACTIONS</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <tr>
-                            <td>
-                                <div class="script-name">marketing_script.txt</div>
-                            </td>
-                            <td>
-                                <div class="voice-name">JENNY (FEMALE, US)</div>
-                            </td>
-                            <td>
-                                <span class="status-badge badge-completed">COMPLETED</span>
-                            </td>
-                            <td>
-                                <span class="text-muted">2025-01-21 14:23</span>
-                            </td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="btn btn-sm btn-outline-info preview-audio" data-job-id="job_001">
-                                        PLAY
-                                    </button>
-                                    <a href="#" class="btn btn-sm btn-outline-success">
-                                        DOWNLOAD
-                                    </a>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div class="script-name">youtube_shorts.txt</div>
-                            </td>
-                            <td>
-                                <div class="voice-name">GUY (MALE, US)</div>
-                            </td>
-                            <td>
-                                <span class="status-badge badge-processing">PROCESSING</span>
-                            </td>
-                            <td>
-                                <span class="text-muted">2025-01-21 15:45</span>
-                            </td>
-                            <td>
-                                <div class="action-buttons">
-                                    <span class="text-muted">PROCESSING...</span>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div class="script-name">podcast_intro.txt</div>
-                            </td>
-                            <td>
-                                <div class="voice-name">SONIA (FEMALE, UK)</div>
-                            </td>
-                            <td>
-                                <span class="status-badge badge-completed">COMPLETED</span>
-                            </td>
-                            <td>
-                                <span class="text-muted">2025-01-21 12:15</span>
-                            </td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="btn btn-sm btn-outline-info preview-audio" data-job-id="job_003">
-                                        PLAY
-                                    </button>
-                                    <a href="#" class="btn btn-sm btn-outline-success">
-                                        DOWNLOAD
-                                    </a>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div class="script-name">commercial_ad.txt</div>
-                            </td>
-                            <td>
-                                <div class="voice-name">RYAN (MALE, UK)</div>
-                            </td>
-                            <td>
-                                <span class="status-badge badge-pending">PENDING</span>
-                            </td>
-                            <td>
-                                <span class="text-muted">2025-01-21 16:02</span>
-                            </td>
-                            <td>
-                                <div class="action-buttons">
-                                    <span class="text-muted">QUEUED</span>
-                                </div>
-                            </td>
-                        </tr>
+                    <tbody id="jobsTableBody">
+                        <!-- Jobs will be populated dynamically -->
                     </tbody>
                 </table>
             </div>
             
-            <div class="d-flex justify-content-center mt-4">
+            <!-- Empty State -->
+            <div id="emptyState" class="empty-state d-none">
+                <div class="empty-state-icon"></div>
+                <h4>NO JOBS YET</h4>
+                <p>You haven't created any voice generation jobs yet. Start by creating your first AI voiceover!</p>
+                <a href="/" class="btn btn-primary">
+                    CREATE YOUR FIRST JOB
+                </a>
+            </div>
+            
+            <div class="d-flex justify-content-center mt-4" style="gap: 1rem;">
+                <button id="refreshJobs" class="btn btn-secondary">
+                    REFRESH JOBS
+                </button>
                 <a href="/" class="btn btn-primary icon-btn">
                     CREATE NEW JOB
                 </a>
@@ -1005,165 +976,459 @@
     </div>
     
     <script>
-        // Custom audio player functionality
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('Dashboard script loaded');
-            
-            const modal = document.getElementById('audioModal');
-            const closeBtn = document.getElementById('closeModal');
-            const audioPlayer = document.getElementById('audioPlayer');
-            const playBtn = document.getElementById('playPauseBtn');
-            const audioProgress = document.getElementById('audioProgress');
-            const audioTimeline = document.getElementById('audioTimeline');
-            const audioTime = document.getElementById('audioTime');
-            
-            // Handle play buttons for each job
-            document.querySelectorAll('.preview-audio').forEach(btn => {
-                btn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    console.log('Preview button clicked');
-                    
-                    const jobId = this.getAttribute('data-job-id');
-                    console.log('Job ID:', jobId);
-                    
-                    // For demo purposes, use a sample audio URL
-                    // In real implementation, this would be: `/stream-audio/${jobId}`
-                    const audioSrc = 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEcDT2a3vLEeSwGJo3O8NOFNgYYZrPq66dWFAhLpuDywHUeDzuV2vLJdTIFLYvH8NSNOgMSX67o66tVEQhMnePwwHIaDzaU2vLKdTEFJ4fL8NKQOgsTXbHo7KlVEQdKo+Hyu3AeDTyR3fPFeSUFJYzG8NOLNwcSYrPq66dWEwlElN/wxXweDDaR2fPIfSwHJozH8N2POgQRXKvn66pXEgdLne3wvnAaD0eQ1vHIdigKIHrB8dyIMAYKY7Xj7KdVCwpCn+3pvmAaC0eR3/PEeioGJo3J8NGNOgQTYLDn7KpXCwdIoOXwtGIMFDWH1fHFdiMSKnnA8dyJMQQJW7Pp7KhW';
-                    
-                    // Show modal and load audio
-                    modal.style.display = 'flex';
-                    audioPlayer.src = audioSrc;
-                    
-                    // Update modal title with job ID
-                    document.getElementById('audioTitle').textContent = `PREVIEW AUDIO - ${jobId.toUpperCase()}`;
-                    
-                    console.log('Modal should be visible now');
-                });
-            });
-            
-            // Close modal
-            if (closeBtn) {
-                closeBtn.addEventListener('click', function() {
-                    console.log('Close button clicked');
-                    modal.style.display = 'none';
-                    audioPlayer.pause();
-                    audioPlayer.src = '';
-                });
-            }
-            
-            // Close modal when clicking outside
-            modal.addEventListener('click', function(e) {
-                if (e.target === modal) {
-                    console.log('Modal background clicked');
-                    modal.style.display = 'none';
-                    audioPlayer.pause();
-                    audioPlayer.src = '';
-                }
-            });
-            
-            if (playBtn && audioPlayer) {
-                console.log('Setting up audio player controls');
-                let isPlaying = false;
-                
-                playBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    console.log('Play/pause button clicked, isPlaying:', isPlaying);
-                    
-                    if (isPlaying) {
-                        audioPlayer.pause();
-                        this.classList.add('paused');
-                        isPlaying = false;
-                        console.log('Pausing audio');
-                    } else {
-                        audioPlayer.play().then(() => {
-                            console.log('Audio playing');
-                        }).catch(err => {
-                            console.error('Error playing audio:', err);
-                        });
-                        this.classList.remove('paused');
-                        isPlaying = true;
-                    }
-                });
-                
-                audioPlayer.addEventListener('timeupdate', function() {
-                    if (audioPlayer.duration) {
-                        const progress = (audioPlayer.currentTime / audioPlayer.duration) * 100;
-                        audioProgress.style.width = progress + '%';
-                        
-                        const currentMinutes = Math.floor(audioPlayer.currentTime / 60);
-                        const currentSeconds = Math.floor(audioPlayer.currentTime % 60);
-                        const totalMinutes = Math.floor(audioPlayer.duration / 60);
-                        const totalSeconds = Math.floor(audioPlayer.duration % 60);
-                        
-                        audioTime.textContent = `${currentMinutes}:${currentSeconds.toString().padStart(2, '0')} / ${totalMinutes}:${totalSeconds.toString().padStart(2, '0')}`;
-                    }
-                });
-                
-                audioTimeline.addEventListener('click', function(e) {
-                    const rect = this.getBoundingClientRect();
-                    const percent = (e.clientX - rect.left) / rect.width;
-                    audioPlayer.currentTime = percent * audioPlayer.duration;
-                });
-                
-                audioPlayer.addEventListener('ended', function() {
-                    playBtn.classList.add('paused');
-                    isPlaying = false;
-                    console.log('Audio ended');
-                });
-                
-                audioPlayer.addEventListener('pause', function() {
-                    playBtn.classList.add('paused');
-                    isPlaying = false;
-                    console.log('Audio paused');
-                });
-                
-                audioPlayer.addEventListener('play', function() {
-                    playBtn.classList.remove('paused');
-                    isPlaying = true;
-                    console.log('Audio playing');
-                });
-                
-                audioPlayer.addEventListener('loadedmetadata', function() {
-                    console.log('Audio metadata loaded');
-                });
-                
-                audioPlayer.addEventListener('error', function(e) {
-                    console.error('Audio error:', e);
-                });
+        // Dashboard functionality for RealTalk
+        class DashboardManager {
+            constructor() {
+                this.jobs = [];
+                this.refreshInterval = null;
+                this.init();
             }
 
-            // Auto-refresh job status every 5 seconds (for demo)
-            setInterval(function() {
-                // Update processing jobs to completed (demo behavior)
-                document.querySelectorAll('.badge-processing').forEach(badge => {
-                    if (Math.random() > 0.7) { // 30% chance to complete
-                        badge.textContent = 'COMPLETED';
-                        badge.className = 'status-badge badge-completed';
-                        
-                        // Add action buttons
-                        const actionsCell = badge.closest('tr').querySelector('.action-buttons');
-                        actionsCell.innerHTML = `
-                            <button class="btn btn-sm btn-outline-info preview-audio" data-job-id="job_new">
+            init() {
+                console.log('Dashboard Manager initialized');
+                this.setupElements();
+                this.loadJobs();
+                this.setupEventListeners();
+                this.startAutoRefresh();
+            }
+
+            setupElements() {
+                this.loadingState = document.getElementById('loadingState');
+                this.jobsTable = document.getElementById('jobsTable');
+                this.jobsTableBody = document.getElementById('jobsTableBody');
+                this.emptyState = document.getElementById('emptyState');
+                this.modal = document.getElementById('audioModal');
+                this.audioPlayer = document.getElementById('audioPlayer');
+                this.playBtn = document.getElementById('playPauseBtn');
+                this.audioProgress = document.getElementById('audioProgress');
+                this.audioTimeline = document.getElementById('audioTimeline');
+                this.audioTime = document.getElementById('audioTime');
+                this.closeBtn = document.getElementById('closeModal');
+            }
+
+            async loadJobs() {
+                try {
+                    console.log('Loading jobs from API...');
+                    const response = await fetch('/api/jobs');
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
+                    const data = await response.json();
+                    this.jobs = data.jobs || [];
+                    console.log('Loaded jobs:', this.jobs);
+                    
+                    this.renderJobs();
+                } catch (error) {
+                    console.error('Error loading jobs:', error);
+                    this.showError('Failed to load jobs. Please refresh the page.');
+                }
+            }
+
+            renderJobs() {
+                this.loadingState.classList.add('d-none');
+
+                if (this.jobs.length === 0) {
+                    this.jobsTable.classList.add('d-none');
+                    this.emptyState.classList.remove('d-none');
+                    return;
+                }
+
+                this.emptyState.classList.add('d-none');
+                this.jobsTable.classList.remove('d-none');
+
+                this.jobsTableBody.innerHTML = this.jobs.map(job => this.createJobRow(job)).join('');
+                this.setupJobEventListeners();
+            }
+
+            createJobRow(job) {
+                const statusBadge = this.getStatusBadge(job.status);
+                const actions = this.getJobActions(job);
+                const createdDate = this.formatDate(job.created_at || job.start_time);
+                const scriptName = job.script_name || job.filename || 'Text Input';
+                const voiceName = this.formatVoiceName(job.voice || job.voice_name);
+
+                return `
+                    <tr data-job-id="${job.id}">
+                        <td>
+                            <div class="script-name">${this.escapeHtml(scriptName)}</div>
+                        </td>
+                        <td>
+                            <div class="voice-name">${this.escapeHtml(voiceName)}</div>
+                        </td>
+                        <td>
+                            ${statusBadge}
+                        </td>
+                        <td>
+                            <span class="text-muted">${createdDate}</span>
+                        </td>
+                        <td>
+                            <div class="action-buttons">
+                                ${actions}
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }
+
+            getStatusBadge(status) {
+                const statusMap = {
+                    'pending': 'badge-pending',
+                    'processing': 'badge-processing',
+                    'completed': 'badge-completed',
+                    'failed': 'badge-failed',
+                    'error': 'badge-error'
+                };
+
+                const badgeClass = statusMap[status] || 'badge-pending';
+                const displayStatus = status.toUpperCase();
+
+                return `<span class="status-badge ${badgeClass}">${displayStatus}</span>`;
+            }
+
+            getJobActions(job) {
+                switch (job.status) {
+                    case 'completed':
+                        return `
+                            <button class="btn btn-sm btn-outline-info preview-audio" data-job-id="${job.id}">
                                 PLAY
                             </button>
-                            <a href="#" class="btn btn-sm btn-outline-success">
+                            <a href="/download/${job.id}" class="btn btn-sm btn-outline-success" download>
                                 DOWNLOAD
                             </a>
                         `;
+                    case 'processing':
+                        return '<span class="text-muted">PROCESSING...</span>';
+                    case 'pending':
+                        return '<span class="text-muted">QUEUED</span>';
+                    case 'failed':
+                    case 'error':
+                        return `
+                            <button class="btn btn-sm btn-outline-info view-error" data-job-id="${job.id}">
+                                VIEW ERROR
+                            </button>
+                        `;
+                    default:
+                        return '<span class="text-muted">UNKNOWN</span>';
+                }
+            }
+
+            formatDate(dateString) {
+                if (!dateString) return 'Unknown';
+                
+                try {
+                    const date = new Date(dateString);
+                    return date.toLocaleString('en-US', {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: false
+                    });
+                } catch (error) {
+                    return dateString;
+                }
+            }
+
+            formatVoiceName(voice) {
+                if (!voice) return 'STANDARD';
+                
+                // Convert voice IDs to readable names
+                const voiceMap = {
+                    'en-US-JennyNeural': 'JENNY (FEMALE, US)',
+                    'en-US-GuyNeural': 'GUY (MALE, US)',
+                    'en-GB-SoniaNeural': 'SONIA (FEMALE, UK)',
+                    'en-GB-RyanNeural': 'RYAN (MALE, UK)'
+                };
+
+                return voiceMap[voice] || voice.toUpperCase();
+            }
+
+            escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+
+            setupJobEventListeners() {
+                // Audio preview buttons
+                document.querySelectorAll('.preview-audio').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const jobId = btn.getAttribute('data-job-id');
+                        this.previewAudio(jobId);
+                    });
+                });
+
+                // Error view buttons
+                document.querySelectorAll('.view-error').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const jobId = btn.getAttribute('data-job-id');
+                        this.viewError(jobId);
+                    });
+                });
+            }
+
+            async previewAudio(jobId) {
+                try {
+                    console.log('Previewing audio for job:', jobId);
+                    
+                    const job = this.jobs.find(j => j.id === jobId);
+                    if (!job) {
+                        throw new Error('Job not found');
+                    }
+
+                    // Show modal
+                    this.modal.style.display = 'flex';
+                    document.getElementById('audioTitle').textContent = `PREVIEW AUDIO - ${job.script_name || 'JOB ' + jobId}`;
+                    
+                    // Load audio
+                    const audioUrl = `/stream-audio/${jobId}`;
+                    this.audioPlayer.src = audioUrl;
+                    
+                    console.log('Audio URL:', audioUrl);
+                    
+                } catch (error) {
+                    console.error('Error previewing audio:', error);
+                    this.showError('Failed to load audio preview');
+                }
+            }
+
+            async viewError(jobId) {
+                try {
+                    const response = await fetch(`/api/job/${jobId}/error`);
+                    const data = await response.json();
+                    
+                    this.showErrorModal(`Job Error:\n${data.error || 'Unknown error occurred'}`);
+                } catch (error) {
+                    console.error('Error fetching job error:', error);
+                    this.showErrorModal('Failed to fetch error details');
+                }
+            }
+
+            setupEventListeners() {
+                // Modal close events
+                if (this.closeBtn) {
+                    this.closeBtn.addEventListener('click', () => this.closeModal());
+                }
+
+                if (this.modal) {
+                    this.modal.addEventListener('click', (e) => {
+                        if (e.target === this.modal) {
+                            this.closeModal();
+                        }
+                    });
+                }
+
+                // Audio player controls
+                if (this.playBtn && this.audioPlayer) {
+                    this.setupAudioPlayer();
+                }
+            }
+
+            setupAudioPlayer() {
+                let isPlaying = false;
+
+                this.playBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    
+                    if (isPlaying) {
+                        this.audioPlayer.pause();
+                        this.playBtn.classList.add('paused');
+                        isPlaying = false;
+                    } else {
+                        this.audioPlayer.play().then(() => {
+                            console.log('Audio playing');
+                        }).catch(err => {
+                            console.error('Error playing audio:', err);
+                            this.showError('Failed to play audio');
+                        });
+                        this.playBtn.classList.remove('paused');
+                        isPlaying = true;
                     }
                 });
 
-                // Update pending jobs to processing (demo behavior)
-                document.querySelectorAll('.badge-pending').forEach(badge => {
-                    if (Math.random() > 0.8) { // 20% chance to start processing
-                        badge.textContent = 'PROCESSING';
-                        badge.className = 'status-badge badge-processing';
+                // Audio events
+                this.audioPlayer.addEventListener('timeupdate', () => {
+                    if (this.audioPlayer.duration) {
+                        const progress = (this.audioPlayer.currentTime / this.audioPlayer.duration) * 100;
+                        this.audioProgress.style.width = progress + '%';
                         
-                        const actionsCell = badge.closest('tr').querySelector('.action-buttons');
-                        actionsCell.innerHTML = '<span class="text-muted">PROCESSING...</span>';
+                        const currentMinutes = Math.floor(this.audioPlayer.currentTime / 60);
+                        const currentSeconds = Math.floor(this.audioPlayer.currentTime % 60);
+                        const totalMinutes = Math.floor(this.audioPlayer.duration / 60);
+                        const totalSeconds = Math.floor(this.audioPlayer.duration % 60);
+                        
+                        this.audioTime.textContent = `${currentMinutes}:${currentSeconds.toString().padStart(2, '0')} / ${totalMinutes}:${totalSeconds.toString().padStart(2, '0')}`;
                     }
                 });
-            }, 5000);
+
+                this.audioTimeline.addEventListener('click', (e) => {
+                    const rect = this.audioTimeline.getBoundingClientRect();
+                    const percent = (e.clientX - rect.left) / rect.width;
+                    this.audioPlayer.currentTime = percent * this.audioPlayer.duration;
+                });
+
+                this.audioPlayer.addEventListener('ended', () => {
+                    this.playBtn.classList.add('paused');
+                    isPlaying = false;
+                });
+
+                this.audioPlayer.addEventListener('pause', () => {
+                    this.playBtn.classList.add('paused');
+                    isPlaying = false;
+                });
+
+                this.audioPlayer.addEventListener('play', () => {
+                    this.playBtn.classList.remove('paused');
+                    isPlaying = true;
+                });
+
+                this.audioPlayer.addEventListener('loadedmetadata', () => {
+                    console.log('Audio metadata loaded');
+                });
+
+                this.audioPlayer.addEventListener('error', (e) => {
+                    console.error('Audio error:', e);
+                    this.showError('Error loading audio file');
+                });
+            }
+
+            closeModal() {
+                this.modal.style.display = 'none';
+                this.audioPlayer.pause();
+                this.audioPlayer.src = '';
+                this.playBtn.classList.add('paused');
+            }
+
+            startAutoRefresh() {
+                // Only refresh when there are active jobs (pending/processing)
+                this.refreshInterval = setInterval(() => {
+                    // Check if there are any active jobs that need monitoring
+                    const hasActiveJobs = this.jobs.some(job => 
+                        job.status === 'pending' || job.status === 'processing'
+                    );
+                    
+                    if (hasActiveJobs) {
+                        console.log('Refreshing jobs - active jobs detected');
+                        this.loadJobs();
+                    } else if (this.jobs.length === 0) {
+                        // Only refresh if no jobs at all (to catch new jobs)
+                        console.log('Refreshing jobs - no jobs found');
+                        this.loadJobs();
+                    } else {
+                        // All jobs are completed/failed, stop auto-refresh
+                        console.log('Stopping auto-refresh - all jobs are completed');
+                        this.stopAutoRefresh();
+                    }
+                }, 8000); // Check every 8 seconds instead of 5
+                
+                console.log('Auto-refresh started');
+            }
+
+            stopAutoRefresh() {
+                if (this.refreshInterval) {
+                    clearInterval(this.refreshInterval);
+                    this.refreshInterval = null;
+                    console.log('Auto-refresh stopped');
+                }
+            }
+
+            // Restart auto-refresh when user manually refreshes
+            manualRefresh() {
+                console.log('Manual refresh triggered');
+                this.loadJobs().then(() => {
+                    // Restart auto-refresh after manual refresh
+                    const hasActiveJobs = this.jobs.some(job => 
+                        job.status === 'pending' || job.status === 'processing'
+                    );
+                    
+                    if (hasActiveJobs && !this.refreshInterval) {
+                        console.log('Restarting auto-refresh after manual refresh');
+                        this.startAutoRefresh();
+                    }
+                });
+            }
+
+            showError(message) {
+                // Create a simple error notification
+                const errorDiv = document.createElement('div');
+                errorDiv.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: #DC2626;
+                    color: white;
+                    padding: 1rem 1.5rem;
+                    border-radius: 6px;
+                    z-index: 2001;
+                    font-family: 'JetBrains Mono', monospace;
+                    font-size: 0.875rem;
+                    max-width: 400px;
+                    box-shadow: var(--shadow-xl);
+                `;
+                errorDiv.textContent = message;
+
+                document.body.appendChild(errorDiv);
+
+                setTimeout(() => {
+                    if (errorDiv.parentNode) {
+                        errorDiv.parentNode.removeChild(errorDiv);
+                    }
+                }, 5000);
+            }
+
+            showErrorModal(message) {
+                // Simple alert for now, could be enhanced with a custom modal
+                alert(message);
+            }
+        }
+
+        // Initialize dashboard when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Dashboard script loaded');
+            
+            // Initialize dashboard manager
+            window.dashboardManager = new DashboardManager();
+
+            // Add manual refresh button functionality
+            const refreshButton = document.getElementById('refreshJobs');
+            if (refreshButton) {
+                refreshButton.addEventListener('click', function() {
+                    this.textContent = 'REFRESHING...';
+                    this.disabled = true;
+                    
+                    window.dashboardManager.manualRefresh().then(() => {
+                        this.textContent = 'REFRESH JOBS';
+                        this.disabled = false;
+                    }).catch(() => {
+                        this.textContent = 'REFRESH JOBS';
+                        this.disabled = false;
+                    });
+                });
+            }
+
+            // Stop auto-refresh when user leaves the page
+            document.addEventListener('visibilitychange', function() {
+                if (document.hidden) {
+                    console.log('Page hidden - stopping auto-refresh');
+                    window.dashboardManager.stopAutoRefresh();
+                } else {
+                    console.log('Page visible - checking if auto-refresh needed');
+                    // Check if we need to restart auto-refresh
+                    const hasActiveJobs = window.dashboardManager.jobs.some(job => 
+                        job.status === 'pending' || job.status === 'processing'
+                    );
+                    
+                    if (hasActiveJobs && !window.dashboardManager.refreshInterval) {
+                        console.log('Restarting auto-refresh - active jobs detected');
+                        window.dashboardManager.startAutoRefresh();
+                    }
+                }
+            });
 
             // Parallax effect for geometric shapes
             window.addEventListener('scroll', () => {
@@ -1177,15 +1442,13 @@
             });
 
             // Add visual feedback for buttons
-            document.querySelectorAll('.btn').forEach(button => {
-                button.addEventListener('click', function() {
-                    // Visual feedback
-                    this.style.transform = 'scale(0.95)';
-                    
+            document.addEventListener('click', function(e) {
+                if (e.target.classList.contains('btn')) {
+                    e.target.style.transform = 'scale(0.95)';
                     setTimeout(() => {
-                        this.style.transform = '';
+                        e.target.style.transform = '';
                     }, 150);
-                });
+                }
             });
 
             // Smooth scrolling for anchor links
@@ -1200,6 +1463,13 @@
                         });
                     }
                 });
+            });
+
+            // Clean up on page unload
+            window.addEventListener('beforeunload', () => {
+                if (window.dashboardManager) {
+                    window.dashboardManager.stopAutoRefresh();
+                }
             });
         });
     </script>

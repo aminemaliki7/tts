@@ -319,31 +319,43 @@ def download_file(job_id):
 
 @app.route('/stream-audio/<job_id>')
 def stream_audio(job_id):
-    # Get the job data from your jobs dictionary
-    job = jobs.get(job_id)
-    
-    if not job:
-        return "Job not found", 404
-    
-    # Check if job is completed
-    if job['status'] != 'completed':
-        return "Audio not ready for streaming", 404
-    
-    # For completed jobs, your app stores the output path in different ways
-    # When a job completes successfully, sometimes it stores the path in 'result'
-    # and sometimes in 'output_file'
-    if 'result' in job and job['result']:
-        audio_file = job['result']
-    else:
-        audio_file = job['output_file']
-    
-    # Return the file as a streaming response
-    return send_file(
-        audio_file, 
-        mimetype='audio/mpeg',
-        as_attachment=False,
-        conditional=True
-    )
+    try:
+        # Get the job data from your jobs dictionary
+        job = jobs.get(job_id)
+        
+        if not job:
+            print(f"Job {job_id} not found")
+            return "Job not found", 404
+        
+        # Check if job is completed
+        if job['status'] != 'completed':
+            print(f"Job {job_id} not completed, status: {job['status']}")
+            return "Audio not ready for streaming", 404
+        
+        # Get audio file path
+        if 'result' in job and job['result']:
+            audio_file = job['result']
+        else:
+            audio_file = job['output_file']
+        
+        print(f"Streaming audio file: {audio_file}")
+        print(f"File exists: {os.path.exists(audio_file)}")
+        
+        if not os.path.exists(audio_file):
+            print(f"Audio file not found: {audio_file}")
+            return "Audio file not found", 404
+        
+        # Return the file as a streaming response
+        return send_file(
+            audio_file, 
+            mimetype='audio/mpeg',  # or 'audio/wav' if your files are WAV
+            as_attachment=False,
+            conditional=True
+        )
+        
+    except Exception as e:
+        print(f"Error streaming audio {job_id}: {str(e)}")
+        return f"Error streaming audio: {str(e)}", 500
 @app.route('/dashboard')
 def dashboard():
     user_jobs = session.get('jobs', [])
@@ -653,6 +665,129 @@ The script should feel persuasive and compelling, with a clear focus on how {pro
     except Exception as e:
         print(f"Error generating marketing script: {e}")
         return jsonify({'error': 'Failed to generate script. Please try again later.'}), 500
+
+    # Add these routes to your existing Flask app (app.py)
+
+@app.route('/api/jobs', methods=['GET'])
+def get_jobs():
+    """Get all jobs for the current user"""
+    try:
+        # Get user jobs from session
+        user_jobs = session.get('jobs', [])
+        user_job_data = []
+        
+        for job_id in user_jobs:
+            if job_id in jobs:
+                job = jobs[job_id].copy()
+                
+                # Format the job data for the dashboard
+                formatted_job = {
+                    'id': job_id,
+                    'script_name': job.get('title', 'Text Input') or 'Text Input',
+                    'filename': job.get('title', 'Text Input') or 'Text Input',
+                    'voice': job.get('voice_id', 'en-US-JennyNeural'),
+                    'voice_name': job.get('voice_id', 'en-US-JennyNeural'),
+                    'status': job.get('status', 'unknown'),
+                    'created_at': datetime.fromtimestamp(job.get('start_time', time.time())).isoformat(),
+                    'start_time': datetime.fromtimestamp(job.get('start_time', time.time())).isoformat(),
+                    'input_type': job.get('input_type', 'text'),
+                    'error': job.get('error', None) if job.get('status') == 'failed' else None
+                }
+                
+                # Add duration if available (you can calculate this from the audio file)
+                if job.get('status') == 'completed':
+                    formatted_job['duration'] = '--:--'  # You can implement actual duration calculation
+                
+                user_job_data.append(formatted_job)
+        
+        # Sort by creation time (newest first)
+        user_job_data.sort(key=lambda x: x['created_at'], reverse=True)
+        
+        return jsonify({
+            'success': True,
+            'jobs': user_job_data
+        })
+        
+    except Exception as e:
+        print(f"Error getting jobs: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/job/<job_id>/error', methods=['GET'])
+def get_job_error(job_id):
+    """Get error details for a specific job"""
+    try:
+        if job_id not in jobs:
+            return jsonify({'error': 'Job not found'}), 404
+            
+        job = jobs[job_id]
+        
+        if job.get('status') != 'failed':
+            return jsonify({'error': 'Job has not failed'}), 400
+            
+        error_message = job.get('error', 'Unknown error occurred')
+        
+        return jsonify({
+            'success': True,
+            'error': error_message
+        })
+        
+    except Exception as e:
+        print(f"Error getting job error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to retrieve error details'
+        }), 500
+
+# You already have these routes, but I'm including them for completeness:
+
+# @app.route('/stream-audio/<job_id>')  # You already have this
+# @app.route('/download/<job_id>')      # You already have this
+
+# Optional: Add a route to get voice name mapping for the dashboard
+@app.route('/api/voices', methods=['GET'])
+def get_voices():
+    """Get available voices for the dashboard"""
+    try:
+        return jsonify({
+            'success': True,
+            'voices': AVAILABLE_VOICES
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+# Optional: Add a route to delete/cancel jobs
+@app.route('/api/job/<job_id>', methods=['DELETE'])
+def delete_job(job_id):
+    """Delete a job"""
+    try:
+        if job_id not in jobs:
+            return jsonify({'error': 'Job not found'}), 404
+            
+        # Remove from jobs dictionary
+        del jobs[job_id]
+        
+        # Remove from user session
+        if 'jobs' in session and job_id in session['jobs']:
+            session['jobs'].remove(job_id)
+            session.modified = True
+            
+        return jsonify({
+            'success': True,
+            'message': 'Job deleted successfully'
+        })
+        
+    except Exception as e:
+        print(f"Error deleting job: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
     
 
 
