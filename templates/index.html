@@ -615,6 +615,152 @@
             gap: 1.5rem;
         }
 
+        /* Pricing Section */
+        .pricing {
+            padding: 8rem 2rem;
+            background: var(--gray-50);
+            position: relative;
+        }
+
+        .pricing::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: var(--gradient-blue);
+        }
+
+        .pricing-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .pricing-header {
+            text-align: center;
+            margin-bottom: 5rem;
+        }
+
+        .pricing-title {
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 1rem;
+            letter-spacing: -0.02em;
+        }
+
+        .pricing-subtitle {
+            font-size: 1.125rem;
+            color: var(--gray-600);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2.5rem;
+        }
+
+        .pricing-card {
+            background: var(--secondary);
+            padding: 2.5rem;
+            border-radius: 12px;
+            border: 1px solid var(--gray-200);
+            transition: all 0.4s ease;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .pricing-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 2px;
+            background: var(--gradient-blue);
+            transition: left 0.3s ease;
+        }
+
+        .pricing-card:hover::before {
+            left: 0;
+        }
+
+        .pricing-card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-xl);
+            border-color: var(--gray-300);
+        }
+
+        .pricing-plan-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 1rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .pricing-price {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+
+        .pricing-description {
+            color: var(--gray-600);
+            line-height: 1.6;
+            margin-bottom: 2rem;
+        }
+
+        .pricing-features {
+            list-style: none;
+            margin-bottom: 2rem;
+        }
+
+        .pricing-feature {
+            color: var(--gray-600);
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .pricing-addons {
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--gray-200);
+        }
+
+        .addon-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 1rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .addon-item {
+            color: var(--gray-600);
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .character-meter {
+            margin: 1rem 0;
+            background: var(--gray-100);
+            border-radius: 6px;
+            height: 10px;
+            overflow: hidden;
+        }
+
+        .character-meter-fill {
+            height: 100%;
+            background: var(--gradient-blue);
+            transition: width 0.3s ease;
+        }
+
         /* Features Section */
         .features {
             padding: 8rem 2rem;
@@ -872,6 +1018,10 @@
                 font-size: 2rem;
             }
 
+            .pricing-title {
+                font-size: 2rem;
+            }
+
             .footer-links {
                 gap: 1.5rem;
             }
@@ -936,6 +1086,7 @@
                 <li><a href="#features" class="nav-link">FEATURES</a></li>
                 <li><a href="/ssml" class="nav-link">VOICE CONTROL</a></li>
                 <li><a href="/dashboard" class="nav-link">DASHBOARD</a></li>
+                <li><a href="#pricing" class="nav-link">PRICING</a></li>
             </ul>
             <a href="#get-started" class="cta-button">GET STARTED</a>
             <button class="hamburger">
@@ -949,6 +1100,7 @@
                 <li><a href="#features" class="mobile-nav-link">FEATURES</a></li>
                 <li><a href="/ssml" class="mobile-nav-link">VOICE CONTROL</a></li>
                 <li><a href="/dashboard" class="mobile-nav-link">DASHBOARD</a></li>
+                <li><a href="#pricing" class="mobile-nav-link">PRICING</a></li>
                 <li><a href="#get-started" class="mobile-nav-link">GET STARTED</a></li>
             </ul>
         </div>
@@ -1056,6 +1208,82 @@
         </div>
     </section>
 
+    <!-- Pricing Section -->
+    <section class="pricing" id="pricing">
+        <div class="pricing-container">
+            <div class="pricing-header">
+                <h2 class="pricing-title">SIMPLE <span class="accent">PRICING</span> PLANS</h2>
+                <p class="pricing-subtitle">
+                    Flexible plans designed for creators, developers, and businesses. Get started for free or unlock premium features with our Pro and Creator plans.
+                </p>
+            </div>
+
+            <div class="pricing-grid">
+                <div class="pricing-card">
+                    <h3 class="pricing-plan-title">Starter</h3>
+                    <p class="pricing-price">Free</p>
+                    <p class="pricing-description">
+                        Perfect for trying out RealTalk's AI voice generation.
+                    </p>
+                    <ul class="pricing-features">
+                        <li class="pricing-feature">5,000 characters/month</li>
+                        <li class="pricing-feature">Access to standard voices</li>
+                        <li class="pricing-feature">Watermarked or slow queue</li>
+                        <li class="pricing-feature">No commercial use</li>
+                    </ul>
+                    
+                    <a href="/signup" class="btn-primary">Get Started</a>
+                </div>
+
+                <div class="pricing-card">
+                    <h3 class="pricing-plan-title">Pro</h3>
+                    <p class="pricing-price">$19/month</p>
+                    <p class="pricing-description">
+                        Ideal for creators and professionals needing high-quality voiceovers.
+                    </p>
+                    <ul class="pricing-features">
+                        <li class="pricing-feature">500,000 characters/month</li>
+                        <li class="pricing-feature">Priority processing</li>
+                        <li class="pricing-feature">Access to all voices</li>
+                        <li class="pricing-feature">Commercial usage allowed</li>
+                        <li class="pricing-feature">API access included</li>
+                    </ul>
+                  
+                    <a href="/signup" class="btn-primary">Get Started</a>
+                    <div class="pricing-addons">
+                        <p class="addon-title">Optional Add-Ons</p>
+                        <p class="addon-item">Extra 250k characters: $5</p>
+                        <p class="addon-item">Voice Cloning: $10 one-time per voice</p>
+                        <p class="addon-item">Team seats: $10 per user/month</p>
+                    </div>
+                </div>
+
+                <div class="pricing-card">
+                    <h3 class="pricing-plan-title">Creator/Studio</h3>
+                    <p class="pricing-price">$49/month</p>
+                    <p class="pricing-description">
+                        Built for power users and studios with advanced needs.
+                    </p>
+                    <ul class="pricing-features">
+                        <li class="pricing-feature">2 million characters/month</li>
+                        <li class="pricing-feature">Faster generation + voice cloning</li>
+                        <li class="pricing-feature">API + batch tools</li>
+                        <li class="pricing-feature">Access to voice styles/emotions</li>
+                        <li class="pricing-feature">Commercial license</li>
+                    </ul>
+                 
+                    <a href="/signup" class="btn-primary">Get Started</a>
+                    <div class="pricing-addons">
+                        <p class="addon-title">Optional Add-Ons</p>
+                        <p class="addon-item">Extra 250k characters: $5</p>
+                        <p class="addon-item">Voice Cloning: $10 one-time per voice</p>
+                        <p class="addon-item">Team seats: $10 per user/month</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- Features Section -->
     <section class="features" id="features">
         <div class="features-container">
@@ -1135,6 +1363,7 @@
                 <a href="/dashboard" class="footer-link">DASHBOARD</a>
                 <a href="/ssml" class="footer-link">SSML EDITOR</a>
                 <a href="#features" class="footer-link">FEATURES</a>
+                <a href="#pricing" class="footer-link">PRICING</a>
                 <a href="/api" class="footer-link">API DOCS</a>
             </div>
             
@@ -1206,7 +1435,7 @@
         });
 
         // Add dynamic blue accents on hover
-        document.querySelectorAll('.feature-card').forEach(card => {
+        document.querySelectorAll('.feature-card, .pricing-card').forEach(card => {
             card.addEventListener('mouseenter', function() {
                 this.style.boxShadow = '0 25px 50px rgba(15, 23, 42, 0.15)';
             });
@@ -1215,6 +1444,23 @@
                 this.style.boxShadow = '';
             });
         });
+
+        // Character meter simulation (for demo purposes)
+        function updateCharacterMeter() {
+            const meters = document.querySelectorAll('.character-meter-fill');
+            meters.forEach(meter => {
+                // Simulate usage (replace with actual backend data)
+                const usage = Math.random() * 80; // Random usage between 0-80%
+                meter.style.width = `${usage}%`;
+                if (usage >= 80) {
+                    // Simulate 80% usage warning
+                    console.log('Warning: 80% of character limit reached!');
+                }
+            });
+        }
+
+        // Update meter on load
+        window.addEventListener('load', updateCharacterMeter);
     </script>
 </body>
 </html>
